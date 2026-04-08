@@ -18,6 +18,7 @@ resource "aws_security_group" "nat" {
   name        = "${var.project_name}-${var.environment}-nat"
   description = "NAT instance security group"
   vpc_id      = var.vpc_id
+  tags        = var.tags
 
   ingress {
     from_port   = 0
@@ -53,9 +54,21 @@ resource "aws_instance" "nat" {
   EOF
   )
 
-  tags = {
+  tags = merge(var.tags, {
     Name = "${var.project_name}-${var.environment}-nat"
-  }
+  })
+}
+
+resource "aws_eip" "nat" {
+  domain = "vpc"
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-${var.environment}-nat-eip"
+  })
+}
+
+resource "aws_eip_association" "nat" {
+  instance_id   = aws_instance.nat.id
+  allocation_id = aws_eip.nat.id
 }
 
 resource "aws_route" "private_nat" {

@@ -4,6 +4,7 @@ locals {
 
 resource "aws_cognito_user_pool" "main" {
   name = local.name
+  tags = var.tags
 
   username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
@@ -13,7 +14,7 @@ resource "aws_cognito_user_pool" "main" {
     require_uppercase = true
     require_lowercase = true
     require_numbers   = true
-    require_symbols   = false
+    require_symbols   = true
   }
 
   schema {
@@ -74,7 +75,10 @@ resource "aws_cognito_user_pool_client" "app" {
   callback_urls = var.callback_urls
   logout_urls   = var.logout_urls
 
-  explicit_auth_flows = [
+  explicit_auth_flows = var.environment == "prod" ? [
+    "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_USER_SRP_AUTH",
+    ] : [
     "ALLOW_USER_PASSWORD_AUTH",
     "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH",

@@ -17,3 +17,9 @@ variable "alert_email" {
   description = "Email address to receive budget alert notifications."
   type        = string
 }
+
+variable "tags" {
+  description = "Tags to apply to all resources."
+  type        = map(string)
+  default     = {}
+}

@@ -3,5 +3,6 @@ output "instance_id" {
 }
 
 output "public_ip" {
-  value = aws_instance.nat.public_ip
+  description = "Elastic IP address of the NAT instance."
+  value       = aws_eip.nat.public_ip
 }

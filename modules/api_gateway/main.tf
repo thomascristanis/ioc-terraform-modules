@@ -5,13 +5,14 @@ locals {
 resource "aws_apigatewayv2_api" "main" {
   name          = local.name
   protocol_type = "HTTP"
+  tags          = var.tags
 
   cors_configuration {
     # Use specific CloudFront domain in production — never wildcard in prod
-    allow_origins  = var.cors_allowed_origins
-    allow_methods  = ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
-    allow_headers  = ["Authorization", "Content-Type"]
-    max_age        = 300
+    allow_origins = var.cors_allowed_origins
+    allow_methods = ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
+    allow_headers = ["Authorization", "Content-Type"]
+    max_age       = 300
   }
 }
 
@@ -31,6 +32,7 @@ resource "aws_apigatewayv2_vpc_link" "main" {
   name               = local.name
   security_group_ids = [var.ecs_security_group_id]
   subnet_ids         = var.private_subnet_ids
+  tags               = var.tags
 }
 
 resource "aws_apigatewayv2_integration" "alb" {
@@ -74,4 +76,5 @@ resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.main.id
   name        = "$default"
   auto_deploy = true
+  tags        = var.tags
 }
