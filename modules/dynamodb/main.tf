@@ -28,6 +28,14 @@ resource "aws_dynamodb_table" "users" {
       key_type       = "HASH"
     }
   }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
 }
 
 # liber_books — shared ISBN/bookId metadata cache
@@ -40,6 +48,14 @@ resource "aws_dynamodb_table" "books" {
   attribute {
     name = "bookId"
     type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
   }
 }
 
@@ -69,6 +85,14 @@ resource "aws_dynamodb_table" "subscriptions" {
       key_type       = "HASH"
     }
   }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
 }
 
 # liber_spaces — physical library spaces per user
@@ -87,6 +111,14 @@ resource "aws_dynamodb_table" "spaces" {
   attribute {
     name = "spaceId"
     type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
   }
 }
 
@@ -138,6 +170,14 @@ resource "aws_dynamodb_table" "catalog" {
       key_type       = "RANGE"
     }
   }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
 }
 
 # liber_tracker — reading progress tracker
@@ -178,6 +218,14 @@ resource "aws_dynamodb_table" "tracker" {
       key_type       = "RANGE"
     }
   }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
 }
 
 # liber_library_access — read-only library sharing
@@ -213,6 +261,14 @@ resource "aws_dynamodb_table" "library_access" {
       key_type       = "HASH"
     }
   }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
 }
 
 # liber_rate_limits — distributed rate limiting counters (50 req/min per user)
@@ -231,5 +287,13 @@ resource "aws_dynamodb_table" "rate_limits" {
   ttl {
     attribute_name = "ttl"
     enabled        = true
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  server_side_encryption {
+    enabled = true
   }
 }
