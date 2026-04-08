@@ -22,12 +22,8 @@ resource "aws_dynamodb_table" "users" {
 
   global_secondary_index {
     name            = "auth-provider-index"
+    hash_key        = "apid"
     projection_type = "KEYS_ONLY"
-
-    key_schema {
-      attribute_name = "apid"
-      key_type       = "HASH"
-    }
   }
 
   point_in_time_recovery {
@@ -81,12 +77,8 @@ resource "aws_dynamodb_table" "subscriptions" {
 
   global_secondary_index {
     name            = "provider-index"
+    hash_key        = "provCustId"
     projection_type = "KEYS_ONLY"
-
-    key_schema {
-      attribute_name = "provCustId"
-      key_type       = "HASH"
-    }
   }
 
   point_in_time_recovery {
@@ -152,28 +144,16 @@ resource "aws_dynamodb_table" "catalog" {
 
   global_secondary_index {
     name            = "bookId-index"
+    hash_key        = "bookId"
     projection_type = "KEYS_ONLY"
-
-    key_schema {
-      attribute_name = "bookId"
-      key_type       = "HASH"
-    }
   }
 
   global_secondary_index {
     name               = "space-index"
+    hash_key           = "userId"
+    range_key          = "sp"
     projection_type    = "INCLUDE"
     non_key_attributes = ["bookId"]
-
-    key_schema {
-      attribute_name = "userId"
-      key_type       = "HASH"
-    }
-
-    key_schema {
-      attribute_name = "sp"
-      key_type       = "RANGE"
-    }
   }
 
   point_in_time_recovery {
@@ -211,18 +191,10 @@ resource "aws_dynamodb_table" "tracker" {
 
   global_secondary_index {
     name               = "status-index"
+    hash_key           = "userId"
+    range_key          = "s"
     projection_type    = "INCLUDE"
     non_key_attributes = ["bookId", "cp", "tp", "pg"]
-
-    key_schema {
-      attribute_name = "userId"
-      key_type       = "HASH"
-    }
-
-    key_schema {
-      attribute_name = "s"
-      key_type       = "RANGE"
-    }
   }
 
   point_in_time_recovery {
@@ -261,12 +233,8 @@ resource "aws_dynamodb_table" "library_access" {
 
   global_secondary_index {
     name            = "guest-index"
+    hash_key        = "guestUserId"
     projection_type = "KEYS_ONLY"
-
-    key_schema {
-      attribute_name = "guestUserId"
-      key_type       = "HASH"
-    }
   }
 
   point_in_time_recovery {
