@@ -28,13 +28,14 @@ Módulos afetados: `api_gateway`, `budget`, `cloudfront`, `cognito`, `dynamodb`,
 
 ### Descrições de variáveis
 
-Adicionar `description` a todas as variáveis que usam a sintaxe inline sem descrição:
+Adicionar `description` às variáveis inline sem descrição e padronizar a ordem `description` → `type` → `default`:
 - `ecr/variables.tf` — `project_name`, `environment`
-- `ecs/variables.tf` — `project_name`, `environment`, `cluster_arn`, `cluster_name`, `private_subnet_ids`, `alb_listener_arn`, `alb_security_group_id`, `vpc_id`, `container_image`, `app_port`, `aws_region`
-- `nat_instance/variables.tf` — todas as variáveis
-- `ecs_schedule/variables.tf` — todas as variáveis
-- `dynamodb/variables.tf` — `project_name`, `environment`
-- `budget/variables.tf` — verificar e completar
+- `ecs/variables.tf` — 11 variáveis inline sem descrição
+- `nat_instance/variables.tf` — todas as 5 variáveis
+- `cloudfront/variables.tf` — `project_name`, `environment`
+- `dynamodb/variables.tf` — padronizar ordem (`type` antes de `description` atualmente)
+
+Já corretos (não modificar): `budget`, `ecs_schedule`, `cognito`, `api_gateway`.
 
 ### Variável `tags`
 
@@ -56,6 +57,8 @@ Aplicar via `tags = var.tags` (ou `merge(var.tags, { Name = "..." })`) em todos 
 |---|---|---|---|
 | `ecs_schedule` | `cron(0 22 * * ? *)` | `stop_cron` | `"cron(0 22 * * ? *)"` |
 | `ecs_schedule` | `cron(0 8 * * ? *)` | `start_cron` | `"cron(0 8 * * ? *)"` |
+| `ecs_schedule` | `DesiredCount = 0` | `scale_down_count` | `0` |
+| `ecs_schedule` | `DesiredCount = 1` | `scale_up_count` | `1` |
 | `cloudfront` | `"PriceClass_100"` | `price_class` | `"PriceClass_100"` |
 | `ecs` | `"/health"` | `health_check_path` | `"/health"` |
 | `ecs` | `100` (listener priority) | `alb_listener_priority` | `100` |
