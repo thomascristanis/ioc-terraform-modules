@@ -59,6 +59,18 @@ resource "aws_instance" "nat" {
   })
 }
 
+resource "aws_eip" "nat" {
+  domain = "vpc"
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-${var.environment}-nat-eip"
+  })
+}
+
+resource "aws_eip_association" "nat" {
+  instance_id   = aws_instance.nat.id
+  allocation_id = aws_eip.nat.id
+}
+
 resource "aws_route" "private_nat" {
   route_table_id         = var.private_route_table_id
   destination_cidr_block = "0.0.0.0/0"
