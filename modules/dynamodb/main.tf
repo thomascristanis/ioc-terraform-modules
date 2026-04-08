@@ -4,10 +4,11 @@ locals {
 
 # liber_users — user profiles with Identity Indirection
 resource "aws_dynamodb_table" "users" {
-  name         = "${local.prefix}_users"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "userId"
-  tags         = var.tags
+  name                        = "${local.prefix}_users"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "userId"
+  deletion_protection_enabled = var.environment == "prod"
+  tags                        = var.tags
 
   attribute {
     name = "userId"
@@ -40,10 +41,11 @@ resource "aws_dynamodb_table" "users" {
 
 # liber_books — shared ISBN/bookId metadata cache
 resource "aws_dynamodb_table" "books" {
-  name         = "${local.prefix}_books"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "bookId"
-  tags         = var.tags
+  name                        = "${local.prefix}_books"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "bookId"
+  deletion_protection_enabled = var.environment == "prod"
+  tags                        = var.tags
 
   attribute {
     name = "bookId"
@@ -61,10 +63,11 @@ resource "aws_dynamodb_table" "books" {
 
 # liber_subscriptions — SaaS plans with Payment Provider Indirection
 resource "aws_dynamodb_table" "subscriptions" {
-  name         = "${local.prefix}_subscriptions"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "userId"
-  tags         = var.tags
+  name                        = "${local.prefix}_subscriptions"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "userId"
+  deletion_protection_enabled = var.environment == "prod"
+  tags                        = var.tags
 
   attribute {
     name = "userId"
@@ -97,11 +100,12 @@ resource "aws_dynamodb_table" "subscriptions" {
 
 # liber_spaces — physical library spaces per user
 resource "aws_dynamodb_table" "spaces" {
-  name         = "${local.prefix}_spaces"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "userId"
-  range_key    = "spaceId"
-  tags         = var.tags
+  name                        = "${local.prefix}_spaces"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "userId"
+  range_key                   = "spaceId"
+  deletion_protection_enabled = var.environment == "prod"
+  tags                        = var.tags
 
   attribute {
     name = "userId"
@@ -124,11 +128,12 @@ resource "aws_dynamodb_table" "spaces" {
 
 # liber_catalog — personal book collection
 resource "aws_dynamodb_table" "catalog" {
-  name         = "${local.prefix}_catalog"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "userId"
-  range_key    = "bookId"
-  tags         = var.tags
+  name                        = "${local.prefix}_catalog"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "userId"
+  range_key                   = "bookId"
+  deletion_protection_enabled = var.environment == "prod"
+  tags                        = var.tags
 
   attribute {
     name = "userId"
@@ -182,11 +187,12 @@ resource "aws_dynamodb_table" "catalog" {
 
 # liber_tracker — reading progress tracker
 resource "aws_dynamodb_table" "tracker" {
-  name         = "${local.prefix}_tracker"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "userId"
-  range_key    = "bookId"
-  tags         = var.tags
+  name                        = "${local.prefix}_tracker"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "userId"
+  range_key                   = "bookId"
+  deletion_protection_enabled = var.environment == "prod"
+  tags                        = var.tags
 
   attribute {
     name = "userId"
@@ -230,11 +236,12 @@ resource "aws_dynamodb_table" "tracker" {
 
 # liber_library_access — read-only library sharing
 resource "aws_dynamodb_table" "library_access" {
-  name         = "${local.prefix}_library_access"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "ownerId"
-  range_key    = "guestUserId"
-  tags         = var.tags
+  name                        = "${local.prefix}_library_access"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "ownerId"
+  range_key                   = "guestUserId"
+  deletion_protection_enabled = var.environment == "prod"
+  tags                        = var.tags
 
   attribute {
     name = "ownerId"
@@ -273,10 +280,11 @@ resource "aws_dynamodb_table" "library_access" {
 
 # liber_rate_limits — distributed rate limiting counters (50 req/min per user)
 resource "aws_dynamodb_table" "rate_limits" {
-  name         = "${local.prefix}_rate_limits"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "userId" # value written by app: "<userId>:<minuteBucket>" (composite rate-limit key)
-  tags         = var.tags
+  name                        = "${local.prefix}_rate_limits"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "userId" # value written by app: "<userId>:<minuteBucket>" (composite rate-limit key)
+  deletion_protection_enabled = var.environment == "prod"
+  tags                        = var.tags
 
   attribute {
     name = "userId"
