@@ -28,12 +28,11 @@ resource "aws_iam_role_policy" "scheduler_ecs" {
   })
 }
 
-# Stop at 22:00 UTC (19:00 BRT)
 resource "aws_scheduler_schedule" "stop" {
   name = "${var.project_name}-${var.environment}-ecs-stop"
 
   flexible_time_window { mode = "OFF" }
-  schedule_expression          = "cron(0 22 * * ? *)"
+  schedule_expression          = var.stop_cron
   schedule_expression_timezone = "UTC"
 
   target {
@@ -43,17 +42,16 @@ resource "aws_scheduler_schedule" "stop" {
     input = jsonencode({
       Cluster      = var.cluster_name
       Service      = var.service_name
-      DesiredCount = 0
+      DesiredCount = var.scale_down_count
     })
   }
 }
 
-# Start at 08:00 UTC (05:00 BRT)
 resource "aws_scheduler_schedule" "start" {
   name = "${var.project_name}-${var.environment}-ecs-start"
 
   flexible_time_window { mode = "OFF" }
-  schedule_expression          = "cron(0 8 * * ? *)"
+  schedule_expression          = var.start_cron
   schedule_expression_timezone = "UTC"
 
   target {
@@ -63,7 +61,7 @@ resource "aws_scheduler_schedule" "start" {
     input = jsonencode({
       Cluster      = var.cluster_name
       Service      = var.service_name
-      DesiredCount = 1
+      DesiredCount = var.scale_up_count
     })
   }
 }

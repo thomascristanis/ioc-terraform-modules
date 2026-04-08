@@ -26,7 +26,7 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
 resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   default_root_object = "index.html"
-  price_class         = "PriceClass_100" # US, Canada, Europe only — cheapest
+  price_class         = var.price_class
 
   origin {
     domain_name              = aws_s3_bucket.frontend.bucket_regional_domain_name

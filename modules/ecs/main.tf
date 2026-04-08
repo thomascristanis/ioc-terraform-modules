@@ -62,7 +62,7 @@ resource "aws_iam_role_policy" "task_dynamodb" {
 
 resource "aws_cloudwatch_log_group" "app" {
   name              = "/ecs/${local.name}"
-  retention_in_days = var.environment == "dev" ? 7 : 14
+  retention_in_days = var.log_retention_days
   tags              = var.tags
 }
 
@@ -141,7 +141,7 @@ resource "aws_lb_target_group" "app" {
   tags        = var.tags
 
   health_check {
-    path                = "/health"
+    path                = var.health_check_path
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
@@ -151,7 +151,7 @@ resource "aws_lb_target_group" "app" {
 
 resource "aws_lb_listener_rule" "app" {
   listener_arn = var.alb_listener_arn
-  priority     = 100
+  priority     = var.alb_listener_priority
   tags         = var.tags
 
   action {
@@ -169,11 +169,12 @@ resource "aws_lb_listener_rule" "app" {
 # --- ECS Service ---
 
 resource "aws_ecs_service" "app" {
-  name            = local.name
-  cluster         = var.cluster_arn
-  task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = 1
-  tags            = var.tags
+  name                              = local.name
+  cluster                           = var.cluster_arn
+  task_definition                   = aws_ecs_task_definition.app.arn
+  desired_count                     = 1
+  health_check_grace_period_seconds = var.health_check_grace_period_seconds
+  tags                              = var.tags
 
   network_configuration {
     subnets          = var.private_subnet_ids
