@@ -13,6 +13,7 @@ data "aws_iam_policy_document" "scheduler_assume" {
 resource "aws_iam_role" "scheduler" {
   name               = "${var.project_name}-${var.environment}-ecs-scheduler"
   assume_role_policy = data.aws_iam_policy_document.scheduler_assume.json
+  tags               = var.tags
 }
 
 resource "aws_iam_role_policy" "scheduler_ecs" {

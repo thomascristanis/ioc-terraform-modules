@@ -17,6 +17,7 @@ data "aws_iam_policy_document" "task_assume" {
 resource "aws_iam_role" "task_execution" {
   name               = "${local.name}-task-execution"
   assume_role_policy = data.aws_iam_policy_document.task_assume.json
+  tags               = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "task_execution_basic" {
@@ -27,6 +28,7 @@ resource "aws_iam_role_policy_attachment" "task_execution_basic" {
 resource "aws_iam_role" "task" {
   name               = "${local.name}-task"
   assume_role_policy = data.aws_iam_policy_document.task_assume.json
+  tags               = var.tags
 }
 
 # DynamoDB access for the task role
@@ -38,8 +40,8 @@ resource "aws_iam_role_policy" "task_dynamodb" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = [
+        Effect = "Allow"
+        Action = [
           "dynamodb:GetItem",
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
@@ -61,6 +63,7 @@ resource "aws_iam_role_policy" "task_dynamodb" {
 resource "aws_cloudwatch_log_group" "app" {
   name              = "/ecs/${local.name}"
   retention_in_days = var.environment == "dev" ? 7 : 14
+  tags              = var.tags
 }
 
 # --- Security Group ---
@@ -69,6 +72,7 @@ resource "aws_security_group" "app" {
   name        = "${local.name}-app"
   description = "Allow traffic from ALB to app container"
   vpc_id      = var.vpc_id
+  tags        = var.tags
 
   ingress {
     from_port       = var.app_port
@@ -95,6 +99,7 @@ resource "aws_ecs_task_definition" "app" {
   memory                   = var.memory
   execution_role_arn       = aws_iam_role.task_execution.arn
   task_role_arn            = aws_iam_role.task.arn
+  tags                     = var.tags
 
   container_definitions = jsonencode([
     {
@@ -133,6 +138,7 @@ resource "aws_lb_target_group" "app" {
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
   target_type = "ip"
+  tags        = var.tags
 
   health_check {
     path                = "/health"
@@ -146,6 +152,7 @@ resource "aws_lb_target_group" "app" {
 resource "aws_lb_listener_rule" "app" {
   listener_arn = var.alb_listener_arn
   priority     = 100
+  tags         = var.tags
 
   action {
     type             = "forward"
@@ -166,6 +173,7 @@ resource "aws_ecs_service" "app" {
   cluster         = var.cluster_arn
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = 1
+  tags            = var.tags
 
   network_configuration {
     subnets          = var.private_subnet_ids

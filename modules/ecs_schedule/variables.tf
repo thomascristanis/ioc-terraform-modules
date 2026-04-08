@@ -22,3 +22,9 @@ variable "aws_region" {
   description = "AWS region where the ECS service runs."
   type        = string
 }
+
+variable "tags" {
+  description = "Tags to apply to all resources."
+  type        = map(string)
+  default     = {}
+}
