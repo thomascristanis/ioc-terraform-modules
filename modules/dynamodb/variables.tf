@@ -1,11 +1,11 @@
 variable "project_name" {
+  description = "Project name used as a prefix for all DynamoDB table names."
   type        = string
-  description = "Project name used as a prefix for all resource names."
 }
 
 variable "environment" {
-  type        = string
   description = "Deployment environment (e.g. dev, prod)."
+  type        = string
 }
 
 variable "tags" {
