@@ -40,6 +40,8 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 resource "aws_cognito_identity_provider" "google" {
+  count = var.google_client_id != "" && var.google_client_secret != "" ? 1 : 0
+
   user_pool_id  = aws_cognito_user_pool.main.id
   provider_name = "Google"
   provider_type = "Google"
@@ -70,7 +72,10 @@ resource "aws_cognito_user_pool_client" "app" {
   allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
   allowed_oauth_flows_user_pool_client = true
-  supported_identity_providers         = ["COGNITO", "Google"]
+  supported_identity_providers = concat(
+    ["COGNITO"],
+    length(aws_cognito_identity_provider.google) > 0 ? ["Google"] : []
+  )
 
   callback_urls = var.callback_urls
   logout_urls   = var.logout_urls
