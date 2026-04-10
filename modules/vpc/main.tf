@@ -10,6 +10,16 @@ resource "aws_vpc" "main" {
   tags = merge(var.tags, {
     Name = "${local.name}-vpc"
   })
+
+  lifecycle {
+    precondition {
+      condition = (
+        length(var.azs) == length(var.public_subnet_cidrs) &&
+        length(var.azs) == length(var.private_subnet_cidrs)
+      )
+      error_message = "azs, public_subnet_cidrs, and private_subnet_cidrs must have the same length."
+    }
+  }
 }
 
 # --- Internet Gateway ---

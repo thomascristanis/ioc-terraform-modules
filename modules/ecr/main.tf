@@ -1,6 +1,6 @@
 resource "aws_ecr_repository" "backend" {
   name                 = "${var.project_name}-${var.environment}-backend"
-  image_tag_mutability = var.environment == "prod" ? "IMMUTABLE" : "MUTABLE"
+  image_tag_mutability = var.environment == "prd" ? "IMMUTABLE" : "MUTABLE"
   tags                 = var.tags
 
   image_scanning_configuration {
