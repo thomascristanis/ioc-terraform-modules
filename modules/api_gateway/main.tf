@@ -1,7 +1,7 @@
 locals {
   name                             = "${var.project_name}-${var.environment}"
-  normalized_alb_security_group_id = trimspace(coalesce(var.alb_security_group_id, ""))
-  normalized_ecs_security_group_id = trimspace(coalesce(var.ecs_security_group_id, ""))
+  normalized_alb_security_group_id = try(trimspace(var.alb_security_group_id), "")
+  normalized_ecs_security_group_id = try(trimspace(var.ecs_security_group_id), "")
 
   # Backward-compatible migration path:
   # prefer the new variable and fall back to the legacy one when needed.
