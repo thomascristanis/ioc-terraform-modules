@@ -1,5 +1,9 @@
 locals {
   name = "${var.project_name}-${var.environment}"
+
+  # Backward-compatible migration path:
+  # prefer the new variable and fall back to the legacy one when needed.
+  vpc_link_security_group_id = coalesce(var.alb_security_group_id, var.ecs_security_group_id)
 }
 
 resource "aws_apigatewayv2_api" "main" {
@@ -30,9 +34,20 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
 
 resource "aws_apigatewayv2_vpc_link" "main" {
   name               = local.name
-  security_group_ids = [var.ecs_security_group_id]
+  security_group_ids = [local.vpc_link_security_group_id]
   subnet_ids         = var.private_subnet_ids
   tags               = var.tags
+
+  lifecycle {
+    precondition {
+      condition     = local.vpc_link_security_group_id != null
+      error_message = "One of alb_security_group_id (preferred) or ecs_security_group_id (deprecated) must be provided."
+    }
+    precondition {
+      condition     = !(var.alb_security_group_id != null && var.ecs_security_group_id != null && var.alb_security_group_id != var.ecs_security_group_id)
+      error_message = "alb_security_group_id and ecs_security_group_id were both provided with different values; use only alb_security_group_id."
+    }
+  }
 }
 
 resource "aws_apigatewayv2_integration" "alb" {
