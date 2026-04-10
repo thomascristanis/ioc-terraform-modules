@@ -9,7 +9,7 @@ resource "aws_dynamodb_table" "tables" {
   billing_mode                = try(each.value.billing_mode, "PAY_PER_REQUEST")
   hash_key                    = each.value.hash_key
   range_key                   = try(each.value.range_key, null)
-  deletion_protection_enabled = try(each.value.deletion_protection_enabled, var.environment == "prd")
+  deletion_protection_enabled = try(each.value.deletion_protection_enabled, true)
   table_class                 = try(each.value.table_class, null)
   read_capacity               = try(each.value.billing_mode, "PAY_PER_REQUEST") == "PROVISIONED" ? try(each.value.read_capacity, null) : null
   write_capacity              = try(each.value.billing_mode, "PAY_PER_REQUEST") == "PROVISIONED" ? try(each.value.write_capacity, null) : null

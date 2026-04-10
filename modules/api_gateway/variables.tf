@@ -16,3 +16,15 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "enable_waf" {
+  description = "Enable a basic AWS WAF web ACL for the API Gateway stage."
+  type        = bool
+  default     = true
+}
+
+variable "waf_rate_limit" {
+  description = "Maximum number of requests from a single IP in a 5-minute period."
+  type        = number
+  default     = 2000
+}
