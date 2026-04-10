@@ -1,6 +1,7 @@
 locals {
-  name     = "${var.project_name}-${var.environment}"
-  has_cert = var.certificate_arn != ""
+  name       = "${var.project_name}-${var.environment}"
+  has_cert   = var.certificate_arn != ""
+  subnet_ids = length(var.subnet_ids) > 0 ? var.subnet_ids : var.public_subnet_ids
 }
 
 # --- Security Group ---
@@ -37,11 +38,18 @@ resource "aws_security_group" "alb" {
 
 resource "aws_lb" "main" {
   name               = substr("${local.name}-alb", 0, 32)
-  internal           = false
+  internal           = var.internal
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets            = var.public_subnet_ids
+  subnets            = local.subnet_ids
   tags               = var.tags
+
+  lifecycle {
+    precondition {
+      condition     = length(local.subnet_ids) >= 2
+      error_message = "Provide at least 2 subnet IDs using subnet_ids (preferred) or public_subnet_ids (deprecated)."
+    }
+  }
 }
 
 # --- HTTP Listener ---
