@@ -20,7 +20,7 @@ variable "tags" {
 variable "enable_waf" {
   description = "Enable a basic AWS WAF web ACL for the API Gateway stage."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "waf_rate_limit" {
