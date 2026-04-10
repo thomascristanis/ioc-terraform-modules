@@ -1,9 +1,16 @@
 locals {
   name = "${var.project_name}-${var.environment}"
+<<<<<<< fix/apigw-503-private-alb
   vpc_link_security_group_id = coalesce(
     var.alb_security_group_id != "" ? var.alb_security_group_id : null,
     var.ecs_security_group_id != "" ? var.ecs_security_group_id : null
   )
+=======
+
+  # Backward-compatible migration path:
+  # prefer the new variable and fall back to the legacy one when needed.
+  vpc_link_security_group_id = coalesce(var.alb_security_group_id, var.ecs_security_group_id)
+>>>>>>> master
 }
 
 resource "aws_apigatewayv2_api" "main" {
@@ -41,7 +48,15 @@ resource "aws_apigatewayv2_vpc_link" "main" {
   lifecycle {
     precondition {
       condition     = local.vpc_link_security_group_id != null
+<<<<<<< fix/apigw-503-private-alb
       error_message = "Set alb_security_group_id (preferred) or ecs_security_group_id (deprecated)."
+=======
+      error_message = "One of alb_security_group_id (preferred) or ecs_security_group_id (deprecated) must be provided."
+    }
+    precondition {
+      condition     = !(var.alb_security_group_id != null && var.ecs_security_group_id != null && var.alb_security_group_id != var.ecs_security_group_id)
+      error_message = "alb_security_group_id and ecs_security_group_id were both provided with different values; use only alb_security_group_id."
+>>>>>>> master
     }
   }
 }
