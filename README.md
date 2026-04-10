@@ -6,13 +6,16 @@ Reusable Terraform modules for AWS infrastructure. Designed for the Liber platfo
 
 | Module | Description |
 |---|---|
-| `modules/dynamodb` | DynamoDB tables (users, books, catalog, tracker, spaces, library_access, subscriptions, rate_limits) |
+| `modules/dynamodb` | Generic multi-table DynamoDB module (table map + name prefixing by project/environment) |
 | `modules/cognito` | Cognito User Pool + Google OAuth app client |
 | `modules/ecr` | ECR repository with lifecycle policy |
 | `modules/ecs` | ECS Fargate service (SPOT + on-demand), IAM, CloudWatch, ALB target group |
 | `modules/api_gateway` | API Gateway HTTP API with JWT authorizer and VPC link |
 | `modules/cloudfront` | S3 + CloudFront distribution with OAC and SPA fallback |
-| `modules/nat_instance` | t4g.nano NAT instance with iptables masquerade |
+| `modules/vpc` | VPC, public/private subnets, IGW, and route tables |
+| `modules/nat_instance` | NAT instance with Elastic IP and private default route |
+| `modules/alb` | Public Application Load Balancer with HTTP/HTTPS listener |
+| `modules/ecs_cluster` | ECS cluster with optional Container Insights |
 | `modules/budget` | AWS Budgets daily cost alert (80% + 100%) |
 | `modules/ecs_schedule` | EventBridge Scheduler to stop/start ECS service outside business hours |
 
@@ -22,9 +25,15 @@ Reusable Terraform modules for AWS infrastructure. Designed for the Liber platfo
 
 ```hcl
 module "dynamodb" {
-  source = "../../liber-infra-modules/modules/dynamodb"
+  source       = "../../liber-infra-modules/modules/dynamodb"
   project_name = "myproject"
   environment  = "dev"
+  tables = {
+    users = {
+      hash_key   = "user_id"
+      attributes = [{ name = "user_id", type = "S" }]
+    }
+  }
 }
 ```
 
@@ -32,9 +41,10 @@ module "dynamodb" {
 
 ```hcl
 module "dynamodb" {
-  source = "git::https://github.com/YOUR_ORG/liber-infra-modules.git//modules/dynamodb?ref=v1.0.0"
+  source       = "git::https://github.com/YOUR_ORG/liber-infra-modules.git//modules/dynamodb?ref=v1.0.0"
   project_name = "myproject"
   environment  = "dev"
+  tables       = var.dynamodb_tables
 }
 ```
 

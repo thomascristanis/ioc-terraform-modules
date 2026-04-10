@@ -80,7 +80,7 @@ resource "aws_cognito_user_pool_client" "app" {
   callback_urls = var.callback_urls
   logout_urls   = var.logout_urls
 
-  explicit_auth_flows = var.environment == "prod" ? [
+  explicit_auth_flows = var.environment == "prd" ? [
     "ALLOW_REFRESH_TOKEN_AUTH",
     "ALLOW_USER_SRP_AUTH",
     ] : [

@@ -2,274 +2,83 @@ locals {
   prefix = "${var.project_name}_${var.environment}"
 }
 
-# liber_users — user profiles with Identity Indirection
-resource "aws_dynamodb_table" "users" {
-  name                        = "${local.prefix}_users"
-  billing_mode                = "PAY_PER_REQUEST"
-  hash_key                    = "userId"
-  deletion_protection_enabled = var.environment == "prod"
-  tags                        = var.tags
+resource "aws_dynamodb_table" "tables" {
+  for_each = var.tables
 
-  attribute {
-    name = "userId"
-    type = "S"
+  name                        = "${local.prefix}_${each.key}"
+  billing_mode                = try(each.value.billing_mode, "PAY_PER_REQUEST")
+  hash_key                    = each.value.hash_key
+  range_key                   = try(each.value.range_key, null)
+  deletion_protection_enabled = try(each.value.deletion_protection_enabled, var.environment == "prd")
+  table_class                 = try(each.value.table_class, null)
+  read_capacity               = try(each.value.billing_mode, "PAY_PER_REQUEST") == "PROVISIONED" ? try(each.value.read_capacity, null) : null
+  write_capacity              = try(each.value.billing_mode, "PAY_PER_REQUEST") == "PROVISIONED" ? try(each.value.write_capacity, null) : null
+  stream_enabled              = try(each.value.stream.enabled, false)
+  stream_view_type            = try(each.value.stream.enabled, false) ? try(each.value.stream.view_type, null) : null
+  tags                        = merge(var.tags, try(each.value.tags, {}))
+
+  dynamic "attribute" {
+    for_each = each.value.attributes
+
+    content {
+      name = attribute.value.name
+      type = attribute.value.type
+    }
   }
 
-  attribute {
-    name = "apid" # authProviderId
-    type = "S"
+  dynamic "global_secondary_index" {
+    for_each = try(each.value.global_secondary_indexes, [])
+
+    content {
+      name            = global_secondary_index.value.name
+      hash_key        = global_secondary_index.value.hash_key
+      range_key       = try(global_secondary_index.value.range_key, null)
+      projection_type = global_secondary_index.value.projection_type
+
+      non_key_attributes = global_secondary_index.value.projection_type == "INCLUDE" ? try(global_secondary_index.value.non_key_attributes, []) : null
+      read_capacity      = try(each.value.billing_mode, "PAY_PER_REQUEST") == "PROVISIONED" ? try(global_secondary_index.value.read_capacity, null) : null
+      write_capacity     = try(each.value.billing_mode, "PAY_PER_REQUEST") == "PROVISIONED" ? try(global_secondary_index.value.write_capacity, null) : null
+    }
   }
 
-  global_secondary_index {
-    name            = "auth-provider-index"
-    hash_key        = "apid"
-    projection_type = "KEYS_ONLY"
+  dynamic "local_secondary_index" {
+    for_each = try(each.value.local_secondary_indexes, [])
+
+    content {
+      name            = local_secondary_index.value.name
+      range_key       = local_secondary_index.value.range_key
+      projection_type = local_secondary_index.value.projection_type
+
+      non_key_attributes = local_secondary_index.value.projection_type == "INCLUDE" ? try(local_secondary_index.value.non_key_attributes, []) : null
+    }
   }
 
-  point_in_time_recovery {
-    enabled = true
-  }
+  dynamic "ttl" {
+    for_each = try(each.value.ttl, null) == null ? [] : [each.value.ttl]
 
-  server_side_encryption {
-    enabled = true
-  }
-}
-
-# liber_books — shared ISBN/bookId metadata cache
-resource "aws_dynamodb_table" "books" {
-  name                        = "${local.prefix}_books"
-  billing_mode                = "PAY_PER_REQUEST"
-  hash_key                    = "bookId"
-  deletion_protection_enabled = var.environment == "prod"
-  tags                        = var.tags
-
-  attribute {
-    name = "bookId"
-    type = "S"
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
-}
-
-# liber_subscriptions — SaaS plans with Payment Provider Indirection
-resource "aws_dynamodb_table" "subscriptions" {
-  name                        = "${local.prefix}_subscriptions"
-  billing_mode                = "PAY_PER_REQUEST"
-  hash_key                    = "userId"
-  deletion_protection_enabled = var.environment == "prod"
-  tags                        = var.tags
-
-  attribute {
-    name = "userId"
-    type = "S"
-  }
-
-  attribute {
-    name = "provCustId"
-    type = "S"
-  }
-
-  global_secondary_index {
-    name            = "provider-index"
-    hash_key        = "provCustId"
-    projection_type = "KEYS_ONLY"
+    content {
+      attribute_name = ttl.value.attribute_name
+      enabled        = try(ttl.value.enabled, true)
+    }
   }
 
   point_in_time_recovery {
-    enabled = true
+    enabled = try(each.value.point_in_time_recovery_enabled, true)
   }
 
   server_side_encryption {
-    enabled = true
-  }
-}
-
-# liber_spaces — physical library spaces per user
-resource "aws_dynamodb_table" "spaces" {
-  name                        = "${local.prefix}_spaces"
-  billing_mode                = "PAY_PER_REQUEST"
-  hash_key                    = "userId"
-  range_key                   = "spaceId"
-  deletion_protection_enabled = var.environment == "prod"
-  tags                        = var.tags
-
-  attribute {
-    name = "userId"
-    type = "S"
+    enabled = try(each.value.server_side_encryption_enabled, true)
   }
 
-  attribute {
-    name = "spaceId"
-    type = "S"
-  }
+  lifecycle {
+    precondition {
+      condition     = try(each.value.billing_mode, "PAY_PER_REQUEST") != "PROVISIONED" || (try(each.value.read_capacity, null) != null && try(each.value.write_capacity, null) != null)
+      error_message = "read_capacity and write_capacity are required when billing_mode is PROVISIONED."
+    }
 
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
-}
-
-# liber_catalog — personal book collection
-resource "aws_dynamodb_table" "catalog" {
-  name                        = "${local.prefix}_catalog"
-  billing_mode                = "PAY_PER_REQUEST"
-  hash_key                    = "userId"
-  range_key                   = "bookId"
-  deletion_protection_enabled = var.environment == "prod"
-  tags                        = var.tags
-
-  attribute {
-    name = "userId"
-    type = "S"
-  }
-
-  attribute {
-    name = "bookId"
-    type = "S"
-  }
-
-  attribute {
-    name = "sp" # spaceId as attribute
-    type = "S"
-  }
-
-  global_secondary_index {
-    name            = "bookId-index"
-    hash_key        = "bookId"
-    projection_type = "KEYS_ONLY"
-  }
-
-  global_secondary_index {
-    name               = "space-index"
-    hash_key           = "userId"
-    range_key          = "sp"
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["bookId"]
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
-}
-
-# liber_tracker — reading progress tracker
-resource "aws_dynamodb_table" "tracker" {
-  name                        = "${local.prefix}_tracker"
-  billing_mode                = "PAY_PER_REQUEST"
-  hash_key                    = "userId"
-  range_key                   = "bookId"
-  deletion_protection_enabled = var.environment == "prod"
-  tags                        = var.tags
-
-  attribute {
-    name = "userId"
-    type = "S"
-  }
-
-  attribute {
-    name = "bookId"
-    type = "S"
-  }
-
-  attribute {
-    name = "s" # status
-    type = "S"
-  }
-
-  global_secondary_index {
-    name               = "status-index"
-    hash_key           = "userId"
-    range_key          = "s"
-    projection_type    = "INCLUDE"
-    non_key_attributes = ["bookId", "cp", "tp", "pg"]
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
-}
-
-# liber_library_access — read-only library sharing
-resource "aws_dynamodb_table" "library_access" {
-  name                        = "${local.prefix}_library_access"
-  billing_mode                = "PAY_PER_REQUEST"
-  hash_key                    = "ownerId"
-  range_key                   = "guestUserId"
-  deletion_protection_enabled = var.environment == "prod"
-  tags                        = var.tags
-
-  attribute {
-    name = "ownerId"
-    type = "S"
-  }
-
-  attribute {
-    name = "guestUserId"
-    type = "S"
-  }
-
-  # TTL: pending invites expire automatically after 30 days (set by application)
-  ttl {
-    attribute_name = "ttl"
-    enabled        = true
-  }
-
-  global_secondary_index {
-    name            = "guest-index"
-    hash_key        = "guestUserId"
-    projection_type = "KEYS_ONLY"
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
-  }
-}
-
-# liber_rate_limits — distributed rate limiting counters (50 req/min per user)
-resource "aws_dynamodb_table" "rate_limits" {
-  name                        = "${local.prefix}_rate_limits"
-  billing_mode                = "PAY_PER_REQUEST"
-  hash_key                    = "userId" # value written by app: "<userId>:<minuteBucket>" (composite rate-limit key)
-  deletion_protection_enabled = var.environment == "prod"
-  tags                        = var.tags
-
-  attribute {
-    name = "userId"
-    type = "S"
-  }
-
-  # TTL: counters expire at end of each minute bucket (set by application)
-  ttl {
-    attribute_name = "ttl"
-    enabled        = true
-  }
-
-  point_in_time_recovery {
-    enabled = true
-  }
-
-  server_side_encryption {
-    enabled = true
+    precondition {
+      condition     = !try(each.value.stream.enabled, false) || try(each.value.stream.view_type, null) != null
+      error_message = "stream.view_type is required when stream.enabled is true."
+    }
   }
 }

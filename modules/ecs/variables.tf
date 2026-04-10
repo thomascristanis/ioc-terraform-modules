@@ -4,7 +4,7 @@ variable "project_name" {
 }
 
 variable "environment" {
-  description = "Deployment environment (e.g. dev, prod)."
+  description = "Deployment environment (e.g. dev, prd)."
   type        = string
 }
 
@@ -66,7 +66,7 @@ variable "memory" {
 }
 
 variable "use_spot_only" {
-  description = "true = pure FARGATE_SPOT (dev); false = SPOT + on-demand fallback (prod)."
+  description = "true = pure FARGATE_SPOT (dev); false = SPOT + on-demand fallback (prd)."
   type        = bool
   default     = false
 }

@@ -8,7 +8,7 @@ resource "aws_apigatewayv2_api" "main" {
   tags          = var.tags
 
   cors_configuration {
-    # Use specific CloudFront domain in production — never wildcard in prod
+    # Use specific CloudFront domain in production — never wildcard in prd
     allow_origins = var.cors_allowed_origins
     allow_methods = ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
     allow_headers = ["Authorization", "Content-Type"]
