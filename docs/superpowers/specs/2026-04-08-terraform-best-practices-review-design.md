@@ -1,7 +1,7 @@
 # Terraform Best Practices Review — Design
 
 **Date:** 2026-04-08  
-**Scope:** All 9 modules in `liber-infra-modules`  
+**Scope:** All 9 modules in `ioc-terraform-modules`  
 **Strategy:** Risk-tiered — changes grouped by operational impact
 
 ---
