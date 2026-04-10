@@ -1,5 +1,9 @@
 locals {
   name = "${var.project_name}-${var.environment}"
+  vpc_link_security_group_id = coalesce(
+    var.alb_security_group_id != "" ? var.alb_security_group_id : null,
+    var.ecs_security_group_id != "" ? var.ecs_security_group_id : null
+  )
 }
 
 resource "aws_apigatewayv2_api" "main" {
@@ -30,9 +34,16 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
 
 resource "aws_apigatewayv2_vpc_link" "main" {
   name               = local.name
-  security_group_ids = [var.ecs_security_group_id]
+  security_group_ids = [local.vpc_link_security_group_id]
   subnet_ids         = var.private_subnet_ids
   tags               = var.tags
+
+  lifecycle {
+    precondition {
+      condition     = local.vpc_link_security_group_id != null
+      error_message = "Set alb_security_group_id (preferred) or ecs_security_group_id (deprecated)."
+    }
+  }
 }
 
 resource "aws_apigatewayv2_integration" "alb" {

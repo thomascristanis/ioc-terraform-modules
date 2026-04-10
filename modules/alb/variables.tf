@@ -13,9 +13,22 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "public_subnet_ids" {
-  description = "List of public subnet IDs for the ALB (at least 2 AZs required)."
+variable "subnet_ids" {
+  description = "List of subnet IDs for the ALB (at least 2 AZs required)."
   type        = list(string)
+  default     = []
+}
+
+variable "public_subnet_ids" {
+  description = "DEPRECATED: use subnet_ids."
+  type        = list(string)
+  default     = []
+}
+
+variable "internal" {
+  description = "Whether the ALB is internal."
+  type        = bool
+  default     = false
 }
 
 variable "certificate_arn" {
