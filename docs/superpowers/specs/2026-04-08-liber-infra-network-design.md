@@ -5,20 +5,20 @@
 
 ## Context
 
-The `liber/infra-base/` project was a monolithic base layer referencing modules (`vpc`, `alb`, `ecs_cluster`) that do not yet exist in `liber-infra-modules`. This design splits it into two standalone projects and adds the missing modules.
+The `liber/infra-base/` project was a monolithic base layer referencing modules (`vpc`, `alb`, `ecs_cluster`) that do not yet exist in `ioc-terraform-modules`. This design splits it into two standalone projects and adds the missing modules.
 
 ## Goals
 
 - Create `liber-infra-network`: VPC, subnets, NAT instance
 - Create `liber-infra-cluster`: ALB, ECS cluster (reads from network remote state)
-- Add missing Terraform modules to `liber-infra-modules`: `vpc`, `alb`, `ecs_cluster`
+- Add missing Terraform modules to `ioc-terraform-modules`: `vpc`, `alb`, `ecs_cluster`
 - Update `liber/infra` to read from two remote states (network + cluster)
 - Delete `liber/infra-base/` (replaced by the two new projects)
 
 ## Architecture
 
 ```
-liber-infra-modules  (new modules: vpc, alb, ecs_cluster)
+ioc-terraform-modules  (new modules: vpc, alb, ecs_cluster)
        ↓
 liber-infra-network  (VPC + NAT instance)
        ↓
@@ -99,7 +99,7 @@ envs/
     (same structure)
 ```
 
-**Module sources** (from `liber-infra-modules`):
+**Module sources** (from `ioc-terraform-modules`):
 - `vpc` — branch `feat/base-infra-modules`
 - `nat_instance` — branch `master`
 
@@ -121,7 +121,7 @@ envs/
     (same structure)
 ```
 
-**Module sources** (from `liber-infra-modules`):
+**Module sources** (from `ioc-terraform-modules`):
 - `alb` — branch `feat/base-infra-modules`
 - `ecs_cluster` — branch `feat/base-infra-modules`
 
@@ -158,7 +158,7 @@ Each repo gets its own branch and PR:
 
 | Repo | Branch |
 |---|---|
-| `liber-infra-modules` | `feat/base-infra-modules` |
+| `ioc-terraform-modules` | `feat/base-infra-modules` |
 | `liber-infra-network` | `feat/initial-setup` |
 | `liber-infra-cluster` | `feat/initial-setup` |
 | `liber` | `feat/split-infra-remote-state` |

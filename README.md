@@ -1,6 +1,11 @@
-# liber-infra-modules
+# ioc-terraform-modules
 
-Reusable Terraform modules for AWS infrastructure. Designed for the Liber platform but portable to any project.
+Reusable Terraform modules for AWS infrastructure.
+
+## Repository rename
+
+This repository was renamed from `liber-infra-modules` to `ioc-terraform-modules`.
+If you still reference the old repository name in module sources, update it.
 
 ## Modules
 
@@ -25,7 +30,7 @@ Reusable Terraform modules for AWS infrastructure. Designed for the Liber platfo
 
 ```hcl
 module "dynamodb" {
-  source       = "../../liber-infra-modules/modules/dynamodb"
+  source       = "../../ioc-terraform-modules/modules/dynamodb"
   project_name = "myproject"
   environment  = "dev"
   tables = {
@@ -41,7 +46,18 @@ module "dynamodb" {
 
 ```hcl
 module "dynamodb" {
-  source       = "git::https://github.com/YOUR_ORG/liber-infra-modules.git//modules/dynamodb?ref=v1.0.0"
+  source       = "git::https://github.com/YOUR_ORG/ioc-terraform-modules.git//modules/dynamodb?ref=v1.0.0"
+  project_name = "myproject"
+  environment  = "dev"
+  tables       = var.dynamodb_tables
+}
+```
+
+### Direct reference (this org)
+
+```hcl
+module "dynamodb" {
+  source       = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/dynamodb?ref=master"
   project_name = "myproject"
   environment  = "dev"
   tables       = var.dynamodb_tables

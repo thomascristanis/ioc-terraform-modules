@@ -12,7 +12,7 @@
 
 ## Context
 
-- `liber-infra-modules` `feat/base-infra-modules` branch already contains `modules/vpc`, `modules/alb`, `modules/ecs_cluster` — no new module code needed, just a PR.
+- `ioc-terraform-modules` `feat/base-infra-modules` branch already contains `modules/vpc`, `modules/alb`, `modules/ecs_cluster` — no new module code needed, just a PR.
 - `liber-infra-network/` and `liber-infra-cluster/` folders exist locally but are empty.
 - `liber/infra-base/` is the old monolithic base — will be deleted.
 - `liber/infra/main.tf` currently reads a single `terraform_remote_state "base"` — will be split into `"network"` and `"cluster"`.
@@ -48,7 +48,7 @@ terraform apply -var-file=environments/dev.tfvars
 
 ---
 
-## Task 1: PR for liber-infra-modules feat/base-infra-modules
+## Task 1: PR for ioc-terraform-modules feat/base-infra-modules
 
 The three modules (vpc, alb, ecs_cluster) already exist on this branch. Just validate and open the PR.
 
@@ -57,7 +57,7 @@ The three modules (vpc, alb, ecs_cluster) already exist on this branch. Just val
 - [ ] **Step 1: Validate modules**
 
 ```bash
-cd /Users/thomascristanis/source/liber-infra-modules
+cd /Users/thomascristanis/source/ioc-terraform-modules
 
 # Check formatting
 terraform fmt -check -recursive modules/vpc modules/alb modules/ecs_cluster
@@ -71,7 +71,7 @@ Expected: no formatting errors reported.
 - [ ] **Step 2: Push branch and open PR**
 
 ```bash
-cd /Users/thomascristanis/source/liber-infra-modules
+cd /Users/thomascristanis/source/ioc-terraform-modules
 git push origin feat/base-infra-modules
 
 gh pr create \
@@ -214,7 +214,7 @@ locals {
 }
 
 module "vpc" {
-  source = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/vpc?ref=feat/base-infra-modules"
+  source = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/vpc?ref=feat/base-infra-modules"
 
   project_name         = local.project_name
   environment          = local.environment
@@ -226,7 +226,7 @@ module "vpc" {
 }
 
 module "nat_instance" {
-  source = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/nat_instance?ref=master"
+  source = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/nat_instance?ref=master"
 
   project_name           = local.project_name
   environment            = local.environment
@@ -345,7 +345,7 @@ locals {
 }
 
 module "vpc" {
-  source = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/vpc?ref=feat/base-infra-modules"
+  source = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/vpc?ref=feat/base-infra-modules"
 
   project_name         = local.project_name
   environment          = local.environment
@@ -357,7 +357,7 @@ module "vpc" {
 }
 
 module "nat_instance" {
-  source = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/nat_instance?ref=master"
+  source = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/nat_instance?ref=master"
 
   project_name           = local.project_name
   environment            = local.environment
@@ -575,7 +575,7 @@ locals {
 }
 
 module "alb" {
-  source = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/alb?ref=feat/base-infra-modules"
+  source = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/alb?ref=feat/base-infra-modules"
 
   project_name      = local.project_name
   environment       = local.environment
@@ -586,7 +586,7 @@ module "alb" {
 }
 
 module "ecs_cluster" {
-  source = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/ecs_cluster?ref=feat/base-infra-modules"
+  source = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/ecs_cluster?ref=feat/base-infra-modules"
 
   project_name = local.project_name
   environment  = local.environment
@@ -716,7 +716,7 @@ locals {
 }
 
 module "alb" {
-  source = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/alb?ref=feat/base-infra-modules"
+  source = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/alb?ref=feat/base-infra-modules"
 
   project_name      = local.project_name
   environment       = local.environment
@@ -727,7 +727,7 @@ module "alb" {
 }
 
 module "ecs_cluster" {
-  source = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/ecs_cluster?ref=feat/base-infra-modules"
+  source = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/ecs_cluster?ref=feat/base-infra-modules"
 
   project_name = local.project_name
   environment  = local.environment
@@ -876,14 +876,14 @@ locals {
 }
 
 module "dynamodb" {
-  source       = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/dynamodb?ref=master"
+  source       = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/dynamodb?ref=master"
   project_name = var.project_name
   environment  = var.environment
   tags         = local.common_tags
 }
 
 module "cognito" {
-  source               = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/cognito?ref=master"
+  source               = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/cognito?ref=master"
   project_name         = var.project_name
   environment          = var.environment
   google_client_id     = var.google_client_id
@@ -894,7 +894,7 @@ module "cognito" {
 }
 
 module "ecr" {
-  source              = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/ecr?ref=master"
+  source              = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/ecr?ref=master"
   project_name        = var.project_name
   environment         = var.environment
   image_count_to_keep = var.environment == "dev" ? 3 : 5
@@ -902,14 +902,14 @@ module "ecr" {
 }
 
 module "cloudfront" {
-  source       = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/cloudfront?ref=master"
+  source       = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/cloudfront?ref=master"
   project_name = var.project_name
   environment  = var.environment
   tags         = local.common_tags
 }
 
 module "ecs" {
-  source                = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/ecs?ref=master"
+  source                = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/ecs?ref=master"
   project_name          = var.project_name
   environment           = var.environment
   cluster_arn           = local.cluster.cluster_arn
@@ -942,7 +942,7 @@ module "ecs" {
 }
 
 module "api_gateway" {
-  source                = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/api_gateway?ref=master"
+  source                = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/api_gateway?ref=master"
   project_name          = var.project_name
   environment           = var.environment
   cognito_issuer        = module.cognito.issuer_url
@@ -956,7 +956,7 @@ module "api_gateway" {
 }
 
 module "budget" {
-  source          = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/budget?ref=master"
+  source          = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/budget?ref=master"
   project_name    = var.project_name
   environment     = var.environment
   daily_limit_usd = var.daily_budget_limit_usd
@@ -966,7 +966,7 @@ module "budget" {
 # ECS schedule only in dev
 module "ecs_schedule" {
   count  = var.environment == "dev" ? 1 : 0
-  source = "git::https://github.com/thomascristanis/liber-infra-modules.git//modules/ecs_schedule?ref=master"
+  source = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/ecs_schedule?ref=master"
 
   project_name = var.project_name
   environment  = var.environment
