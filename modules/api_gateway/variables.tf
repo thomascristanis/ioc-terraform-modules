@@ -5,7 +5,17 @@ variable "cognito_client_id" { type = string }
 variable "alb_listener_arn" { type = string }
 variable "vpc_id" { type = string }
 variable "private_subnet_ids" { type = list(string) }
-variable "ecs_security_group_id" { type = string }
+variable "alb_security_group_id" {
+  type        = string
+  default     = null
+  description = "Security group ID attached to API Gateway VPC link ENIs, expected to allow traffic to the ALB listener."
+}
+
+variable "ecs_security_group_id" {
+  type        = string
+  default     = null
+  description = "DEPRECATED: use alb_security_group_id."
+}
 variable "cors_allowed_origins" {
   type        = list(string)
   description = "List of origins allowed for CORS — should be the CloudFront domain in production, localhost in dev"
