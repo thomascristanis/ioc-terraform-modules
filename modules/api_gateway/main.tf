@@ -1,12 +1,14 @@
 locals {
-  name = "${var.project_name}-${var.environment}"
+  name                             = "${var.project_name}-${var.environment}"
+  normalized_alb_security_group_id = trimspace(coalesce(var.alb_security_group_id, ""))
+  normalized_ecs_security_group_id = trimspace(coalesce(var.ecs_security_group_id, ""))
 
   # Backward-compatible migration path:
   # prefer the new variable and fall back to the legacy one when needed.
   # Also treat empty strings as unset to support older callers.
   vpc_link_security_group_id = coalesce(
-    var.alb_security_group_id != null && trimspace(var.alb_security_group_id) != "" ? var.alb_security_group_id : null,
-    var.ecs_security_group_id != null && trimspace(var.ecs_security_group_id) != "" ? var.ecs_security_group_id : null
+    local.normalized_alb_security_group_id != "" ? local.normalized_alb_security_group_id : null,
+    local.normalized_ecs_security_group_id != "" ? local.normalized_ecs_security_group_id : null
   )
 }
 
@@ -49,11 +51,9 @@ resource "aws_apigatewayv2_vpc_link" "main" {
     }
     precondition {
       condition = !(
-        var.alb_security_group_id != null &&
-        trimspace(var.alb_security_group_id) != "" &&
-        var.ecs_security_group_id != null &&
-        trimspace(var.ecs_security_group_id) != "" &&
-        trimspace(var.alb_security_group_id) != trimspace(var.ecs_security_group_id)
+        local.normalized_alb_security_group_id != "" &&
+        local.normalized_ecs_security_group_id != "" &&
+        local.normalized_alb_security_group_id != local.normalized_ecs_security_group_id
       )
       error_message = "alb_security_group_id and ecs_security_group_id were both provided with different values; use only alb_security_group_id."
     }
