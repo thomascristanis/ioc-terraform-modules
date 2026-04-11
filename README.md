@@ -1,4 +1,4 @@
-# ioc-terraform-modules
+# IoC Terraform Modules
 
 Pare de montar infraestrutura AWS do zero a cada projeto.  
 `ioc-terraform-modules` entrega blocos Terraform prontos para uso, com padrões consistentes, menor risco operacional e mais velocidade de entrega.
