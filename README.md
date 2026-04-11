@@ -1,13 +1,15 @@
 # ioc-terraform-modules
 
-Módulos reutilizáveis de Terraform para infraestrutura AWS.
-
-Este repositório foi renomeado de `liber-infra-modules` para `ioc-terraform-modules`.
-Se você ainda usa o nome antigo no `source` dos módulos, atualize para evitar quebra futura.
+Pare de montar infraestrutura AWS do zero a cada projeto.  
+`ioc-terraform-modules` entrega blocos Terraform prontos para uso, com padrões consistentes, menor risco operacional e mais velocidade de entrega.
 
 ## Índice
 
+- [Por Que Este Projeto Existe](#por-que-este-projeto-existe)
+- [Problemas Que Resolve](#problemas-que-resolve)
+- [O Que Você Ganha](#o-que-você-ganha)
 - [Visão Geral](#visão-geral)
+- [Início Rápido](#início-rápido)
 - [Pré-requisitos](#pré-requisitos)
 - [Convenções do Repositório](#convenções-do-repositório)
 - [Como Referenciar os Módulos](#como-referenciar-os-módulos)
@@ -30,21 +32,68 @@ Se você ainda usa o nome antigo no `source` dos módulos, atualize para evitar 
 - [Validação dos Módulos](#validação-dos-módulos)
 - [Versionamento e Publicação](#versionamento-e-publicação)
 
+## Por Que Este Projeto Existe
+
+Construir uma stack AWS moderna envolve dezenas de decisões de rede, segurança, observabilidade, deploy e custos.  
+Sem módulos bem definidos, cada time resolve isso de um jeito diferente, gerando retrabalho e ambientes inconsistentes.
+
+Este projeto existe para transformar essa complexidade em um catálogo de módulos composáveis, padronizados e prontos para produção.
+
+## Problemas Que Resolve
+
+- Entrega lenta por repetir a mesma infraestrutura em cada repositório
+- Divergência entre ambientes (`dev`, `stg`, `prd`) por falta de padrão
+- Alto risco de regressão ao copiar e adaptar código Terraform manualmente
+- Dificuldade para evoluir arquitetura sem quebrar stacks existentes
+- Onboarding demorado de novos times por falta de referência única
+
+## O Que Você Ganha
+
+- Provisionamento mais rápido com módulos reutilizáveis e contratos claros de input/output
+- Consistência entre projetos com convenções de naming e tagging
+- Evolução controlada via versionamento por tags (`ref=vX.Y.Z`)
+- Menos carga operacional e mais foco no produto, não na infraestrutura base
+
 ## Visão Geral
 
-Todos os módulos seguem o mesmo contrato base:
+Este repositório concentra módulos Terraform para montar uma stack AWS completa (rede, compute, dados, autenticação, entrega e custos) com componentes pequenos e reutilizáveis.
 
-- `project_name` e `environment` como identificadores de contexto.
-- `tags` como `map(string)` para padronização de tags.
-- `terraform >= 1.3` e `hashicorp/aws ~> 5.0`.
+Cada módulo segue a estrutura:
 
-Objetivo: permitir montar uma stack AWS completa (rede, compute, dados, auth, entrega e custos) com módulos pequenos e composáveis.
+- `main.tf`: recursos e lógica principal
+- `variables.tf`: inputs do módulo
+- `outputs.tf`: valores exportados
+- `versions.tf`: versões mínimas de Terraform/providers
+
+Contrato base esperado na maioria dos módulos:
+
+- `project_name` e `environment` como identificadores de contexto
+- `tags` como `map(string)` para padronização
+- `terraform >= 1.3` e `hashicorp/aws ~> 5.0`
+
+## Início Rápido
+
+1. Referencie o módulo com uma tag estável (`ref=vX.Y.Z`).
+2. Execute `terraform init` e `terraform plan` no repositório consumidor.
+3. Em mudanças neste repositório, rode `terraform fmt` e `terraform validate` antes de publicar.
+
+Exemplo mínimo de consumo:
+
+```hcl
+module "vpc" {
+  source       = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/vpc?ref=v1.0.0"
+  project_name = "myproject"
+  environment  = "prd"
+
+  azs = ["us-east-1a", "us-east-1b"]
+}
+```
 
 ## Pré-requisitos
 
 - Terraform `>= 1.3`
 - Provider AWS `~> 5.0`
-- Credenciais AWS com permissões para os serviços usados (VPC, ECS, ECR, ALB, API Gateway, Cognito, CloudFront, DynamoDB, WAF, Budgets, etc.)
+- Credenciais AWS com permissões para os serviços utilizados (VPC, ECS, ECR, ALB, API Gateway, Cognito, CloudFront, DynamoDB, WAF, Budgets etc.)
 
 Exemplo de provider no repositório consumidor:
 
@@ -69,9 +118,9 @@ provider "aws" {
 
 - Nome padrão AWS: `${var.project_name}-${var.environment}-<suffix>`
 - Nome padrão DynamoDB: `${var.project_name}_${var.environment}_<suffix>`
-- Não hardcode de conta/região/ambiente dentro dos consumidores
+- Evite hardcode de conta/região/ambiente nos consumidores
 
-Observação: alguns módulos usam `environment == "prd"` e outro usa `environment == "prod"` para comportamentos condicionais. Padronize no consumidor para evitar inconsistência.
+Importante: existe uso misto de `environment == "prd"` e `environment == "prod"` em módulos diferentes. Defina um padrão no repositório consumidor para evitar comportamento inesperado.
 
 ## Como Referenciar os Módulos
 
@@ -87,7 +136,7 @@ module "vpc" {
 }
 ```
 
-### Recomendado para produção (tag estável)
+### Produção (recomendado, via tag estável)
 
 ```hcl
 module "vpc" {
@@ -99,7 +148,7 @@ module "vpc" {
 }
 ```
 
-### Branch específica (não recomendado para produção)
+### Branch específica (somente desenvolvimento)
 
 ```hcl
 module "vpc" {
