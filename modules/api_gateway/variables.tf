@@ -1,5 +1,13 @@
 variable "project_name" { type = string }
-variable "environment" { type = string }
+variable "environment" {
+  description = "Deployment environment. Must be \"dev\" or \"prd\" (production is always \"prd\")."
+  type        = string
+
+  validation {
+    condition     = contains(["dev", "prd"], var.environment)
+    error_message = "environment must be \"dev\" or \"prd\"."
+  }
+}
 variable "cognito_issuer" { type = string }
 variable "cognito_client_id" { type = string }
 variable "alb_listener_arn" { type = string }

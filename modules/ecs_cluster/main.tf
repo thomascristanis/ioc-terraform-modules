@@ -8,7 +8,7 @@ resource "aws_ecs_cluster" "main" {
 
   setting {
     name  = "containerInsights"
-    value = var.environment == "prod" ? "enabled" : "disabled"
+    value = var.environment == "prd" ? "enabled" : "disabled"
   }
 }
 

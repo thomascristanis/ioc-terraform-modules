@@ -27,7 +27,7 @@ There is no root-level `main.tf` — modules are consumed by external projects. 
 
 - All modules share the same two required variables: `project_name` and `environment`.
 - Resource naming pattern: `${var.project_name}-${var.environment}-<suffix>` (hyphens) for AWS resource names; `${var.project_name}_${var.environment}_<suffix>` (underscores) for DynamoDB table names.
-- `environment` values are `dev` or `prod`. Some behavior branches on this (e.g., CloudWatch log retention, SPOT-only vs SPOT+on-demand in ECS).
+- `environment` is `dev` or `prd` (production is always `prd`, never `prod`). Every module enforces this with a `validation` block on the variable, so an invalid value fails during `plan`. Some behavior branches on it (e.g., CloudWatch log retention, SPOT-only vs SPOT+on-demand in ECS).
 
 ## Architecture Overview
 
