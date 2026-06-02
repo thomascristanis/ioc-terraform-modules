@@ -23,6 +23,7 @@ Pare de montar infraestrutura AWS do zero a cada projeto.
   - [ecs_cluster](#módulo-ecs_cluster)
   - [ecr](#módulo-ecr)
   - [dynamodb](#módulo-dynamodb)
+  - [rds](#módulo-rds)
   - [ecs](#módulo-ecs)
   - [ecs_schedule](#módulo-ecs_schedule)
   - [cognito](#módulo-cognito)
@@ -93,7 +94,7 @@ module "vpc" {
 
 - Terraform `>= 1.3`
 - Provider AWS `~> 5.0`
-- Credenciais AWS com permissões para os serviços utilizados (VPC, ECS, ECR, ALB, API Gateway, Cognito, CloudFront, DynamoDB, WAF, Budgets etc.)
+- Credenciais AWS com permissões para os serviços utilizados (VPC, ECS, ECR, ALB, API Gateway, Cognito, CloudFront, DynamoDB, RDS, Secrets Manager, WAF, Budgets etc.)
 
 Exemplo de provider no repositório consumidor:
 
@@ -167,11 +168,12 @@ module "vpc" {
 6. `ecr`
 7. `dynamodb`
 8. `ecs`
-9. `ecs_schedule` (opcional)
-10. `cognito`
-11. `api_gateway`
-12. `cloudfront`
-13. `budget`
+9. `rds` (opcional; `allowed_security_group_ids` recebe o SG da app criado pelo `ecs`)
+10. `ecs_schedule` (opcional)
+11. `cognito`
+12. `api_gateway`
+13. `cloudfront`
+14. `budget`
 
 ## Exemplo de Stack Completa
 
@@ -257,6 +259,18 @@ module "ecs" {
   }
 
   tags = local.common_tags
+}
+
+module "rds" {
+  source       = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/rds?ref=v1.0.0"
+  project_name = "myproject"
+  environment  = "prd"
+
+  vpc_id                     = module.vpc.vpc_id
+  private_subnet_ids         = module.vpc.private_subnet_ids
+  allowed_security_group_ids = [module.ecs.security_group_id]
+  database_name              = "app"
+  tags                       = local.common_tags
 }
 
 module "cognito" {
@@ -601,6 +615,67 @@ module "dynamodb" {
       ]
     }
   }
+}
+```
+
+### Módulo `rds`
+
+Cria uma instância RDS PostgreSQL em subnets privadas, com storage criptografado e autoscaling, security group dedicado e credenciais master geradas automaticamente e armazenadas no Secrets Manager.
+
+**Inputs**
+
+| Nome | Tipo | Obrigatório | Default | Descrição |
+|---|---|---|---|---|
+| `project_name` | `string` | Sim | - | Prefixo |
+| `environment` | `string` | Sim | - | Ambiente (`dev` ou `prd`) |
+| `vpc_id` | `string` | Sim | - | VPC onde o security group é criado |
+| `private_subnet_ids` | `list(string)` | Sim | - | Subnets privadas do DB subnet group (mín. 2 AZs) |
+| `allowed_security_group_ids` | `list(string)` | Não | `[]` | SGs autorizados a conectar na porta do banco (ex.: SG da app ECS) |
+| `engine_version` | `string` | Não | `16.4` | Versão do PostgreSQL |
+| `port` | `number` | Não | `5432` | Porta do banco |
+| `database_name` | `string` | Não | `app` | Nome do banco inicial |
+| `master_username` | `string` | Não | `postgres` | Usuário master |
+| `instance_class` | `string` | Não | `""` | Classe da instância; vazio usa default por ambiente |
+| `allocated_storage` | `number` | Não | `20` | Storage inicial em GB |
+| `max_allocated_storage` | `number` | Não | `100` | Limite do autoscaling de storage (`0` desabilita) |
+| `storage_type` | `string` | Não | `gp3` | Tipo de storage |
+| `multi_az` | `bool` | Não | `null` | Sobrescreve o default (sempre `false`, inclusive em `prd`) |
+| `deletion_protection` | `bool` | Não | `null` | Sobrescreve o default por ambiente |
+| `backup_retention_period` | `number` | Não | `null` | Sobrescreve o default por ambiente |
+| `skip_final_snapshot` | `bool` | Não | `null` | Sobrescreve o default por ambiente |
+| `performance_insights_enabled` | `bool` | Não | `false` | Habilita Performance Insights |
+| `tags` | `map(string)` | Não | `{}` | Tags |
+
+**Outputs**
+
+- `db_instance_id`
+- `db_instance_arn`
+- `endpoint` (host:port)
+- `address`
+- `port`
+- `database_name`
+- `security_group_id`
+- `credentials_secret_arn` (ARN do secret com `username`/`password`/`host`/`port`/`dbname`)
+
+**Observações**
+
+- A senha master é gerada via `random_password` e nunca aparece em output em plaintext; conceda à task role do ECS acesso de leitura ao `credentials_secret_arn`.
+- Multi-AZ fica `false` por padrão (inclusive em `prd`), mas pode ser ativado via `multi_az = true`.
+- Defaults por ambiente (sobrescrevíveis): em `prd`, `deletion_protection = true`, `backup_retention_period = 7`, `skip_final_snapshot = false`, `instance_class = db.t4g.small`; em `dev`, sem proteção, retenção `1`, snapshot final pulado, `instance_class = db.t4g.micro`.
+- O acesso é liberado apenas via `allowed_security_group_ids`; a instância não é `publicly_accessible`.
+
+**Exemplo**
+
+```hcl
+module "rds" {
+  source       = "git::https://github.com/thomascristanis/ioc-terraform-modules.git//modules/rds?ref=v1.0.0"
+  project_name = "myproject"
+  environment  = "prd"
+
+  vpc_id                     = module.vpc.vpc_id
+  private_subnet_ids         = module.vpc.private_subnet_ids
+  allowed_security_group_ids = [module.ecs.security_group_id]
+  database_name              = "app"
 }
 ```
 
