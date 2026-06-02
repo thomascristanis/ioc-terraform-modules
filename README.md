@@ -120,7 +120,7 @@ provider "aws" {
 - Nome padrão DynamoDB: `${var.project_name}_${var.environment}_<suffix>`
 - Evite hardcode de conta/região/ambiente nos consumidores
 
-Importante: existe uso misto de `environment == "prd"` e `environment == "prod"` em módulos diferentes. Defina um padrão no repositório consumidor para evitar comportamento inesperado.
+Importante: produção é sempre `prd` (nunca `prod`). Todos os módulos só aceitam `environment = "dev"` ou `"prd"` — qualquer outro valor falha na validação durante o `plan`.
 
 ## Como Referenciar os Módulos
 
