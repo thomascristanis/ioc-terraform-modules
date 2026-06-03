@@ -23,7 +23,7 @@ Pare de montar infraestrutura AWS do zero a cada projeto.
   - [ecs_cluster](#módulo-ecs_cluster)
   - [ecr](#módulo-ecr)
   - [dynamodb](#módulo-dynamodb)
-  - [rds](#módulo-rds)
+  - [rds (PostgreSQL)](#módulo-rds)
   - [ecs](#módulo-ecs)
   - [ecs_schedule](#módulo-ecs_schedule)
   - [cognito](#módulo-cognito)
@@ -644,6 +644,10 @@ Cria uma instância RDS PostgreSQL em subnets privadas, com storage criptografad
 | `backup_retention_period` | `number` | Não | `null` | Sobrescreve o default por ambiente |
 | `skip_final_snapshot` | `bool` | Não | `null` | Sobrescreve o default por ambiente |
 | `performance_insights_enabled` | `bool` | Não | `false` | Habilita Performance Insights |
+| `performance_insights_retention_period` | `number` | Não | `7` | Dias de retenção do Performance Insights (`7` ou múltiplo de `31` até `731`); usado só com `performance_insights_enabled = true` |
+| `auto_minor_version_upgrade` | `bool` | Não | `true` | Aplica upgrades menores de versão automaticamente na janela de manutenção |
+| `apply_immediately` | `bool` | Não | `false` | Aplica mudanças imediatamente em vez de aguardar a janela de manutenção (pode causar downtime em `prd`) |
+| `kms_key_id` | `string` | Não | `""` | ARN da KMS key para criptografia de storage; vazio usa a chave gerenciada `aws/rds` |
 | `tags` | `map(string)` | Não | `{}` | Tags |
 
 **Outputs**
@@ -663,6 +667,7 @@ Cria uma instância RDS PostgreSQL em subnets privadas, com storage criptografad
 - Multi-AZ fica `false` por padrão (inclusive em `prd`), mas pode ser ativado via `multi_az = true`.
 - Defaults por ambiente (sobrescrevíveis): em `prd`, `deletion_protection = true`, `backup_retention_period = 7`, `skip_final_snapshot = false`, `instance_class = db.t4g.small`; em `dev`, sem proteção, retenção `1`, snapshot final pulado, `instance_class = db.t4g.micro`.
 - O acesso é liberado apenas via `allowed_security_group_ids`; a instância não é `publicly_accessible`.
+- Além do provider AWS, o módulo requer o provider `hashicorp/random` (`~> 3.0`), declarado internamente e instalado automaticamente pelo `terraform init`.
 
 **Exemplo**
 
