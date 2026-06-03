@@ -33,7 +33,7 @@ There is no root-level `main.tf` — modules are consumed by external projects. 
 
 The modules form a layered AWS stack:
 
-**Data layer** (`dynamodb`): 8 PAY_PER_REQUEST tables with abbreviated attribute names in hot paths (e.g., `apid`, `sp`, `s`, `cp`, `tp`, `pg`). `library_access` and `rate_limits` use DynamoDB TTL.
+**Data layer** (`dynamodb`, `rds`): `dynamodb` provisions 8 PAY_PER_REQUEST tables with abbreviated attribute names in hot paths (e.g., `apid`, `sp`, `s`, `cp`, `tp`, `pg`); `library_access` and `rate_limits` use DynamoDB TTL. `rds` provisions a PostgreSQL instance in private subnets (encrypted gp3 storage with autoscaling; Multi-AZ off by default even in `prd`), reachable only from the security groups passed via `allowed_security_group_ids` (typically the ECS app SG). Master credentials are generated with `random_password` and stored in Secrets Manager — only the secret ARN is exported as an output, never the password. Per-environment defaults (instance class, deletion protection, backup retention, final-snapshot behavior) are overridable.
 
 **Auth** (`cognito`): Cognito User Pool with Google OAuth client. The `api_gateway` module consumes Cognito's issuer URL and client ID for JWT authorization.
 
@@ -50,6 +50,8 @@ The modules form a layered AWS stack:
 ## Key Wiring Between Modules
 
 - `ecs` outputs `security_group_id` → consumed by `api_gateway` as `ecs_security_group_id` for the VPC link.
+- `ecs` outputs `security_group_id` → consumed by `rds` as `allowed_security_group_ids` to scope database ingress to the app.
+- `rds` outputs `credentials_secret_arn` → grant the ECS task role read access so the app can pull DB credentials from Secrets Manager.
 - `ecs` outputs `alb_target_group_arn` → consumed by the ALB listener (external).
 - `cognito` outputs `client_id` and `issuer_url` → consumed by `api_gateway`.
 - `ecs_schedule` takes `cluster_name` and `service_name` from `ecs` outputs.
